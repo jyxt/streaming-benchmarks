@@ -23,7 +23,7 @@ public class CampaignProcessorCommon {
     private LRUHashMap<Long, HashMap<String, Window>> campaign_windows;
     private Set<CampaignWindowPair> need_flush;
 
-    private long processed = 0;
+    private long processed = 0; // not used anywhere...
 
     private static final Long time_divisor = 10000L; // 10 second windows
 
@@ -67,12 +67,12 @@ public class CampaignProcessorCommon {
     }
 
     private void writeWindow(String campaign, Window win) {
-        String windowUUID = flush_jedis.hmget(campaign, win.timestamp).get(0);
+        String windowUUID = flush_jedis.hmget(campaign, win.timestamp).get(0); // why not hget here??
         if (windowUUID == null) {
             windowUUID = UUID.randomUUID().toString();
             flush_jedis.hset(campaign, win.timestamp, windowUUID);
 
-            String windowListUUID = flush_jedis.hmget(campaign, "windows").get(0);
+            String windowListUUID = flush_jedis.hmget(campaign, "windows").get(0); // why not hget here??
             if (windowListUUID == null) {
                 windowListUUID = UUID.randomUUID().toString();
                 flush_jedis.hset(campaign, "windows", windowListUUID);
@@ -97,7 +97,7 @@ public class CampaignProcessorCommon {
         }
     }
 
-    public static Window redisGetWindow(Long timeBucket, Long time_divisor) {
+    public static Window redisGetWindow(Long timeBucket, Long time_divisor) { // nothing to do with redis
 
         Window win = new Window();
         win.timestamp = Long.toString(timeBucket * time_divisor);
@@ -112,34 +112,15 @@ public class CampaignProcessorCommon {
             HashMap<String, Window> bucket_map = campaign_windows.get(timeBucket);
             if (bucket_map == null) {
                 // Try to pull from redis into cache.
-                Window redisWindow = redisGetWindow(timeBucket, time_divisor);
-                if (redisWindow != null) {
-                    bucket_map = new HashMap<String, Window>();
-                    campaign_windows.put(timeBucket, bucket_map);
-                    bucket_map.put(campaign_id, redisWindow);
-                    return redisWindow;
-                }
-
-                // Otherwise, if nothing in redis:
                 bucket_map = new HashMap<String, Window>();
                 campaign_windows.put(timeBucket, bucket_map);
             }
-
             // Bucket exists. Check the window.
             Window window = bucket_map.get(campaign_id);
             if (window == null) {
                 // Try to pull from redis into cache.
-                Window redisWindow = redisGetWindow(timeBucket, time_divisor);
-                if (redisWindow != null) {
-                    bucket_map.put(campaign_id, redisWindow);
-                    return redisWindow;
-                }
-
-                // Otherwise, if nothing in redis:
-                window = new Window();
-                window.timestamp = Long.toString(timeBucket * time_divisor);
-                window.seenCount = 0L;
-                bucket_map.put(campaign_id, redisWindow);
+                window = redisGetWindow(timeBucket, time_divisor);                
+                bucket_map.put(campaign_id, window);
             }
             return window;
         }

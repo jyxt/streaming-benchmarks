@@ -142,8 +142,8 @@ public class AdvertisingTopologyNative {
 
             Tuple3<String, String, String> tuple = new Tuple3<String, String, String>(
                     campaign_id,
-                    (String) input.getField(0),
-                    (String) input.getField(1));
+                    (String) input.getField(0), // ad_id, not even used..
+                    (String) input.getField(1)); // event_time
             out.collect(tuple);
         }
     }
