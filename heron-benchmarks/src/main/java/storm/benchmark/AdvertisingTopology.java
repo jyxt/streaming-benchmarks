@@ -23,7 +23,6 @@ import benchmark.common.advertising.CampaignProcessorCommon;
 import benchmark.common.advertising.RedisAdCampaignCache;
 import java.util.Map;
 import java.util.UUID;
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -207,27 +206,14 @@ public class AdvertisingTopology {
         String configPath = cmd.getOptionValue("conf");
         Map commonConfig = Utils.findAndReadConfigFile(configPath, true);
 
-        List<String> zkHostStrings= new ArrayList<String>();
-        zkHostStrings.add("localhost");
-        String zkServerHosts = joinHosts(zkHostStrings, "2181");
-
-        // String zkServerHosts = joinHosts((List<String>)commonConfig.get("zookeeper.servers"),
-        //                                  Integer.toString((Integer)commonConfig.get("zookeeper.port")));
-        // String redisServerHost = (String)commonConfig.get("redis.host");
-        // String kafkaTopic = (String)commonConfig.get("kafka.topic");
-        // int kafkaPartitions = ((Number)commonConfig.get("kafka.partitions")).intValue();
-        // int workers = ((Number)commonConfig.get("storm.workers")).intValue();
-        // int ackers = ((Number)commonConfig.get("storm.ackers")).intValue();
-        // int cores = ((Number)commonConfig.get("process.cores")).intValue();
-        // int parallel = Math.max(1, cores/7);
-
-
-        String redisServerHost = "localhost";
-        String kafkaTopic = "ad-events";
-        int kafkaPartitions = 1;
-        int workers = 1;
-        int ackers = 2;
-        int cores = 4;
+        String zkServerHosts = joinHosts((List<String>)commonConfig.get("zookeeper.servers"),
+                                         Integer.toString((Integer)commonConfig.get("zookeeper.port")));
+        String redisServerHost = (String)commonConfig.get("redis.host");
+        String kafkaTopic = (String)commonConfig.get("kafka.topic");
+        int kafkaPartitions = ((Number)commonConfig.get("kafka.partitions")).intValue();
+        int workers = ((Number)commonConfig.get("storm.workers")).intValue();
+        int ackers = ((Number)commonConfig.get("storm.ackers")).intValue();
+        int cores = ((Number)commonConfig.get("process.cores")).intValue();
         int parallel = Math.max(1, cores/7);
 
         ZkHosts hosts = new ZkHosts(zkServerHosts);
@@ -251,7 +237,7 @@ public class AdvertisingTopology {
         if (args != null && args.length > 0) {
             conf.setNumWorkers(workers);
             conf.setNumAckers(ackers);
-            StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
+            StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
         }
         else {
 
